@@ -1,7 +1,11 @@
 def main():
+    N = int(input())
     word = input()
-    word = word[0].upper()+word[1:]
-    print(word)
+    count = 0
+    for i in range(N-1):
+        if word[i]==word[i+1]:
+            count+=1
+    print(count)
 
 if __name__ == "__main__":
     main()
