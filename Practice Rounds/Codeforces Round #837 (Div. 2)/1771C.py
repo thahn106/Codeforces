@@ -1,8 +1,7 @@
-from bisect import bisect_left
-from math import ceil
+from math import sqrt, gcd
+from random import randrange
 
-
-# miller_rabin test
+# miller_rabin tes
 def miller_rabin(n, a):
     # n-1 = d*2^r
     r = 0
@@ -32,7 +31,6 @@ def is_prime(n):
     if n % 2 == 0:
         return False
     prime_list = [2, 7, 61]  # 32-bit version, works up to 4,759,123,141>2**32
-    # prime_list = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37]  # 64-bit version
     for p in prime_list:
         if n == p:
             return True
@@ -43,9 +41,6 @@ def is_prime(n):
 
 # find a prime factor of n
 def pollard_rho(n):
-    from random import randrange
-    from math import gcd
-
     if is_prime(n):
         return n
     if n == 1:
@@ -76,61 +71,36 @@ def factorize(n):
     while n > 1:
         divisor = pollard_rho(n)
         factors.append(divisor)
-        n = n // divisor
+        k, r = divmod(n, divisor)
+        while not r:
+            n = k
+            k, r = divmod(k, divisor)
+    factors.sort()  # Optional sort
     return factors
 
 
-factorization = []
-
-
-def get_factors(depth):
-    p, exp = factorization[depth]
-    powlist = [p**i for i in range(exp + 1)]
-    if depth == len(factorization) - 1:
-        return powlist
-    next = get_factors(depth + 1)
-    return [d1 * d2 for d1 in powlist for d2 in next]
-
-
 for t in range(int(input())):
-    n, m1, m2 = map(int, input().split())
-    m = m1 * m2
-    if m == 1:
-        print(1, 1)
-        continue
-    factors = []
-    if m1 > 1:
-        factors += factorize(m1)
-    if m2 > 1:
-        factors += factorize(m2)
-    factors.sort()
+    n = int(input())
+    a = list(map(int, input().split()))
+    seen = set()
+    found = False
+    for x in a:
+        if x == 1:
+            continue
+        divs = factorize(x)
+        last = 0
+        for p in divs:
+            if p != last:
+                if p in seen:
+                    found = True
+                    break
+                else:
+                    seen.add(p)
+                    last = p
+        if found:
+            break
 
-    factorization = []
-    cur = factors[0]
-    cc = 0
-    for p in factors:
-        if p == cur:
-            cc += 1
-        else:
-            if cc:
-                factorization.append((cur, cc))
-            cur = p
-            cc = 1
-    factorization.append((cur, cc))
-    divs = get_factors(0)
-    divs.sort()
-
-    count = 0
-    ans = 0
-    found = set()
-
-    N = len(divs)
-    for d in divs:
-        i = bisect_left(divs, ceil(d / n))
-        while i < N and divs[i] <= n:
-            if d % divs[i] == 0:
-                count += 1
-                ans = ans ^ divs[i]
-                break
-            i += 1
-    print(count, ans)
+    if found:
+        print("YES")
+    else:
+        print("NO")
